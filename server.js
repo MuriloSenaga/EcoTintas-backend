@@ -1,49 +1,58 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
+const admin = require('firebase-admin');
 const path = require('path');
+
+// Inicializa o Firebase Admin SDK
+const serviceAccount = require('./firebaseKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
+const sugestoesRef = db.collection('sugestoes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Permitir acesso somente do seu front-end
 app.use(cors({
   origin: 'https://murilosenaga.github.io'
 }));
 app.use(express.json());
 
-// Rota de teste
+// Teste básico
 app.get('/', (req, res) => {
-  res.send('Servidor EcoTintas funcionando!');
+  res.send('Servidor EcoTintas com Firebase Firestore está rodando!');
 });
 
-// Rota para receber sugestões
-app.post('/sugestao', (req, res) => {
-  const sugestao = req.body;
+// 📩 POST - Recebe e salva sugestão no Firestore
+app.post('/sugestao', async (req, res) => {
+  try {
+    const sugestao = req.body;
+    sugestao.dataEnvio = sugestao.dataEnvio || new Date().toLocaleString('pt-BR');
 
-  const filePath = path.join(__dirname, 'sugestoes.json');
-  let sugestoes = [];
-
-  if (fs.existsSync(filePath)) {
-    sugestoes = JSON.parse(fs.readFileSync(filePath));
+    await sugestoesRef.add(sugestao);
+    res.status(201).json({ mensagem: 'Sugestão salva com sucesso!' });
+  } catch (error) {
+    console.error("Erro ao salvar sugestão:", error);
+    res.status(500).json({ mensagem: 'Erro ao salvar sugestão' });
   }
+});
 
-  sugestoes.push(sugestao);
-  fs.writeFileSync(filePath, JSON.stringify(sugestoes, null, 2));
-
-  res.status(201).json({ mensagem: 'Sugestão recebida com sucesso!' });
+// 📄 GET - Lista todas as sugestões do Firestore
+app.get('/sugestoes', async (req, res) => {
+  try {
+    const snapshot = await sugestoesRef.orderBy('dataEnvio', 'desc').get();
+    const sugestoes = snapshot.docs.map(doc => doc.data());
+    res.json(sugestoes);
+  } catch (error) {
+    console.error("Erro ao buscar sugestões:", error);
+    res.status(500).json({ mensagem: 'Erro ao buscar sugestões' });
+  }
 });
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
-
-app.get('/listar', (req, res) => {
-  const filePath = path.join(__dirname, 'sugestoes.json');
-  if (fs.existsSync(filePath)) {
-    const sugestoes = JSON.parse(fs.readFileSync(filePath));
-    res.json(sugestoes);
-  } else {
-    res.json([]);
-  }
-});
-
