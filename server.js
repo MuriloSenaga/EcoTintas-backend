@@ -34,8 +34,9 @@ app.get('/', (req, res) => {
 app.post('/sugestao', async (req, res) => {
   try {
     const sugestao = req.body;
-    sugestao.dataEnvio = sugestao.dataEnvio || new Date().toLocaleString('pt-BR');
+    console.log('Recebido:', sugestao); // Adicione isso
 
+    sugestao.dataEnvio = sugestao.dataEnvio || new Date().toLocaleString('pt-BR');
     await sugestoesRef.add(sugestao);
     res.status(201).json({ mensagem: 'Sugestão salva com sucesso!' });
   } catch (error) {
