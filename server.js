@@ -36,3 +36,14 @@ app.post('/sugestao', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+app.get('/listar', (req, res) => {
+  const filePath = path.join(__dirname, 'sugestoes.json');
+  if (fs.existsSync(filePath)) {
+    const sugestoes = JSON.parse(fs.readFileSync(filePath));
+    res.json(sugestoes);
+  } else {
+    res.json([]);
+  }
+});
+
