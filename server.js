@@ -21,8 +21,11 @@ const PORT = process.env.PORT || 3000;
 
 // Permitir acesso somente do seu front-end
 app.use(cors({
-  origin: 'https://murilosenaga.github.io'
+  origin: 'https://murilosenaga.github.io',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type']
 }));
+
 app.use(express.json());
 
 // Teste básico
