@@ -42,7 +42,7 @@ app.post('/sugestao', async (req, res) => {
 });
 
 // 📄 GET - Lista todas as sugestões do Firestore
-app.get('/sugestoes', async (req, res) => {
+app.get('/listar', async (req, res) => {
   try {
     const snapshot = await sugestoesRef.orderBy('dataEnvio', 'desc').get();
     const sugestoes = snapshot.docs.map(doc => doc.data());
